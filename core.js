@@ -1,4 +1,5 @@
 export const TOTAL = 20;
+export const CONTENT_REVISION = 3;
 export const STORAGE_KEY = 'puzzle-arcade-v2';
 export const LEGACY_KEY = 'puzzle-arcade-v1';
 export const TYPES = {
@@ -24,7 +25,12 @@ export const TYPES = {
     icon: '🐰',
     color: 'peach',
   },
-  pacman: { title: 'Conejito a la fuga', label: 'Bunny maze', icon: '🐰', color: 'lilac' },
+  pacman: {
+    title: 'Conejito a la fuga',
+    label: 'Laberinto del conejo',
+    icon: '🐰',
+    color: 'lilac',
+  },
   reaction: { title: '¿Sigues ahí?', label: 'Reflejos', icon: '⚡', color: 'yellow' },
   visual: { title: 'Algo está cambiando', label: 'Patrones visuales', icon: '◒', color: 'pink' },
   grid: { title: 'Todo encaja', label: 'Cuadrícula numérica', icon: '▦', color: 'mint' },
@@ -35,9 +41,14 @@ export const TYPES = {
     color: 'peach',
   },
   sudoku: { title: 'Las casillas se han mudado', label: 'Sudoku 6 × 6', icon: '▦', color: 'lilac' },
-  egg: { title: 'Es un huevo.', label: 'Huevo clicker', icon: '🥚', color: 'yellow' },
+  egg: { title: 'Es un huevo.', label: 'El huevo', icon: '🥚', color: 'yellow' },
   switches: { title: 'Buenas noches, luces', label: 'Interruptores', icon: '☼', color: 'mint' },
-  trivia: { title: 'El club de los datos raros', label: 'Trivia', icon: '?', color: 'pink' },
+  trivia: {
+    title: 'El club de los datos raros',
+    label: 'Preguntas y respuestas',
+    icon: '?',
+    color: 'pink',
+  },
 };
 
 export const ELEMENTS = [
@@ -159,6 +170,7 @@ export function createCampaign(seed = Math.floor(Math.random() * 2 ** 32)) {
 export function freshSave(seed) {
   return {
     version: 2,
+    contentRevision: CONTENT_REVISION,
     campaign: createCampaign(seed),
     completed: [],
     stars: 0,
@@ -182,10 +194,32 @@ export function restoreSave(raw) {
     const stageData = {};
     for (const stage of save.campaign) {
       const data = save.stageData?.[stage.id];
-      if (data && typeof data === 'object' && !Array.isArray(data)) stageData[stage.id] = data;
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        if (
+          save.contentRevision !== CONTENT_REVISION &&
+          ['sequence', 'circle', 'mystery', 'grid', 'visual', 'chemistry'].includes(stage.type)
+        ) {
+          const rounds =
+            stage.type === 'circle'
+              ? 2
+              : stage.type === 'chemistry'
+                ? stage.variant === 3
+                  ? 1
+                  : 2
+                : 3;
+          stageData[stage.id] = {
+            round:
+              Number.isInteger(data.round) && data.round >= 0 && data.round < rounds
+                ? data.round
+                : 0,
+            attempt: Number.isInteger(data.attempt) && data.attempt >= 0 ? data.attempt : 0,
+          };
+        } else stageData[stage.id] = data;
+      }
     }
     return {
       ...save,
+      contentRevision: CONTENT_REVISION,
       currentStage: save.completed.length,
       stars: save.completed.length,
       bonusUnlocked: save.completed.length === TOTAL,

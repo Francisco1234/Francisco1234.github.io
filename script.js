@@ -1,4 +1,13 @@
-import { TOTAL, STORAGE_KEY, LEGACY_KEY, TYPES, freshSave, restoreSave, shuffle } from './core.js';
+import {
+  TOTAL,
+  CONTENT_REVISION,
+  STORAGE_KEY,
+  LEGACY_KEY,
+  TYPES,
+  freshSave,
+  restoreSave,
+  shuffle,
+} from './core.js';
 import {
   numberPuzzle,
   chemistry,
@@ -103,9 +112,10 @@ function sound(kind) {
 function updateSoundButton() {
   soundToggle.innerHTML = `
     ♪
-    <span>${save.muted ? 'off' : 'on'}</span>
+    <span>${save.muted ? 'no' : 'sí'}</span>
   `;
-  soundToggle.setAttribute('aria-label', save.muted ? 'Activar sonido' : 'Silenciar sonido');
+  soundToggle.setAttribute('aria-label', save.muted ? 'Activar sonido' : 'Desactivar sonido');
+  soundToggle.title = save.muted ? 'Activar sonido' : 'Desactivar sonido';
   soundToggle.setAttribute('aria-pressed', String(!save.muted));
 }
 
@@ -139,7 +149,14 @@ function toast(message) {
 
 function showModal(content, actions) {
   window.dispatchEvent(new Event('arcade-pause'));
-  document.querySelector('#modal-content').innerHTML = content;
+  document.querySelector('#modal-content').innerHTML =
+    `<button type="button" class="small-button modal-close" aria-label="Cerrar ventana">×</button>${content}`;
+  document.querySelector('.modal-close').onclick = () => modal.close();
+  const title = document.querySelector('#modal-content h2');
+  if (title) {
+    title.id = 'modal-title';
+    modal.setAttribute('aria-labelledby', title.id);
+  }
   const footer = document.createElement('div');
   footer.className = 'modal-actions';
   if (actions) actions(footer);
@@ -199,10 +216,10 @@ function bonusButton() {
       ${
         save.bonusUnlocked
           ? 'data-bonus'
-          : 'disabled aria-label="Bonus bloqueado. Consigue las veinte estrellas."'
+          : 'disabled aria-label="Extra bloqueado. Consigue las veinte estrellas."'
       }
     >
-      ${save.bonusUnlocked ? '✨ BONUS UNLOCKED ✨' : '🔒 BONUS'}
+      ${save.bonusUnlocked ? '✨ EXTRA DESBLOQUEADO ✨' : '🔒 EXTRA'}
     </button>
   `;
 }
@@ -239,7 +256,7 @@ function home() {
       ${save.legacyEdition && !save.started ? '<p class="edition-note">Nueva edición: 20 retos. Tu partida anterior de 15 sigue guardada por separado.</p>' : ''}
       <button class="primary play-button" id="play">
         <span class="play-triangle" aria-hidden="true">▶</span>
-        ${save.bonusUnlocked ? 'BONUS' : save.started ? 'CONTINUAR' : 'PLAY'}
+        ${save.bonusUnlocked ? 'EXTRA' : save.started ? 'CONTINUAR' : 'JUGAR'}
       </button>
       <p class="home-caption">
         ${
@@ -248,7 +265,8 @@ function home() {
             : `${TOTAL} juegos. Más ingenio. La misma adorable tontería.`
         }
       </p>
-      <p class="home-note">(mi cerebro ya esta frito)</p>
+      <p class="home-note">(mi cerebro ya está frito)</p>
+      <p class="home-thanks">Gracias ChatGPT por rellenar los diálogos</p>
       <img class="home-sticker sticker-cat" src="assets/cat/cat.svg" alt="" aria-hidden="true" />
       <img class="home-sticker sticker-star" src="assets/ui/star.svg" alt="" aria-hidden="true" />
       <img
@@ -291,7 +309,7 @@ function showStage() {
   const index = save.currentStage,
     stage = save.campaign[index],
     info = TYPES[stage.type];
-  setCaption(`${stage.type.replace('chemistry', 'mini-lab').replace('cat', 'jardín')}.exe`, true);
+  setCaption(`${info.label.toLocaleLowerCase('es').replaceAll(' ', '-')}.exe`, true);
   screen.innerHTML = `
     <div class="game-shell ${info.color}" data-game="${stage.type}">
       <div class="game-top">
@@ -311,7 +329,7 @@ function showStage() {
             [
               '',
               'calentando motores',
-              'ya le coges el truco',
+              'ya vas tomando práctica',
               'un poquito de ingenio',
               'la recta final',
             ][stage.tier]
@@ -383,6 +401,23 @@ function showStage() {
     },
     win: (message) => {
       if (alive && !save.completed.includes(stage.id)) completeStage(stage, message);
+    },
+    announce: (key, guide, start) => {
+      const ruleKey = `${CONTENT_REVISION}:${key}`;
+      const seen = Array.isArray(state.rulesSeen) ? state.rulesSeen : [];
+      if (seen.includes(ruleKey)) return false;
+      const root = document.querySelector('#game');
+      root.innerHTML = `<section class="rule-change-card" aria-labelledby="rule-heading"><strong class="eyebrow">IMPORTANTE</strong><h2 id="rule-heading">${guide.title}</h2><p>${guide.text}</p><button type="button" class="primary rule-ack">Entendido, jugar →</button></section>`;
+      root.querySelector('.rule-ack').onclick = () => {
+        if (!alive) return;
+        ctx.patch({ rulesSeen: [...seen, ruleKey] });
+        start();
+        const focus =
+          root.querySelector('input, [data-cell][aria-pressed="true"], .reveal-memory') ||
+          root.querySelector('button');
+        focus?.focus({ preventScroll: true });
+      };
+      return true;
     },
     sound,
     modal: showModal,
@@ -476,12 +511,12 @@ function completeStage(stage, message) {
         <span class="success-count">
           ${
             save.bonusUnlocked
-              ? '✨ BONUS UNLOCKED ✨'
+              ? '✨ EXTRA DESBLOQUEADO ✨'
               : `${TOTAL - save.stars} pequeños retos por descubrir`
           }
         </span>
         <button class="primary next-stage">
-          ${save.bonusUnlocked ? 'Abrir el BONUS →' : 'Siguiente juego →'}
+          ${save.bonusUnlocked ? 'Abrir el EXTRA →' : 'Siguiente juego →'}
         </button>
       </div>
       ${progressStrip()}
@@ -500,9 +535,9 @@ function showFinal() {
       <div class="success-screen">
         <img class="success-star" src="assets/ui/star.svg" alt="" />
         <h1>Veinte de veinte.</h1>
-        <p>Colección completa. Tu recompensa es… bastante peculiar.</p>
-        <span class="success-count">✨ BONUS UNLOCKED ✨</span>
-        <button class="primary" data-bonus>Abrir el BONUS →</button>
+        <p>¡Terminaste todos los juegos! Tu premio es… un poco raro.</p>
+        <span class="success-count">✨ EXTRA DESBLOQUEADO ✨</span>
+        <button class="primary" data-bonus>Abrir el EXTRA →</button>
       </div>
       ${progressStrip()}
     </div>
@@ -570,7 +605,7 @@ function showBonus() {
 
 document.querySelector('#map-toggle').onclick = () =>
   showModal(
-    `<h2>Tu pequeño recorrido</h2><p>${save.stars} / ${TOTAL} estrellas. Un juego cada vez. El orden se guarda hasta que reinicies.</p><ol class="map-list">${save.campaign.map((stage, i) => `<li class="${i < save.stars ? 'done' : i === save.currentStage ? 'current' : 'locked'}"><span class="map-number">${i < save.stars ? '★' : String(i + 1).padStart(2, '0')}</span><span>${TYPES[stage.type].label}${stage.type === 'chemistry' ? ` · ${['fichas', 'parejas', 'protones', 'archivo'][stage.variant]}` : stage.type === 'sudoku' && stage.variant === 1 ? ' termómetro' : ''}${i > save.currentStage ? ' · bloqueado' : ''}</span></li>`).join('')}</ol>`,
+    `<h2>Tu recorrido</h2><p>${save.stars} / ${TOTAL} estrellas. Un juego cada vez. El orden se guarda hasta que reinicies.</p><ol class="map-list">${save.campaign.map((stage, i) => `<li class="${i < save.stars ? 'done' : i === save.currentStage ? 'current' : 'locked'}"><span class="map-number">${i < save.stars ? '★' : String(i + 1).padStart(2, '0')}</span><span>${TYPES[stage.type].label}${stage.type === 'chemistry' ? ` · ${['fichas', 'parejas', 'protones', 'archivo'][stage.variant]}` : stage.type === 'sudoku' && stage.variant === 1 ? ' termómetro' : ''}${i > save.currentStage ? ' · bloqueado' : ''}</span></li>`).join('')}</ol>`,
   );
 
 document.querySelector('#reset').onclick = () =>
@@ -593,7 +628,7 @@ document.querySelector('#reset').onclick = () =>
         persist();
         home();
         focusHeading();
-        toast('Un nuevo puñado de pequeños retos.');
+        toast('¡Todo listo para una partida nueva!');
       };
       footer.append(cancel, confirm);
     },

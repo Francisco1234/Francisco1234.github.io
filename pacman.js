@@ -399,10 +399,10 @@ export function pacman(ctx) {
     completedLevel = false;
   root.innerHTML = `
     <p class="game-instruction">
-      Dos laberintos, un peluche y demasiadas miguitas.
+      Dos laberintos, un peluche y muchos puntos por recoger.
       <br />
       Flechas / WASD o botones.
-      <strong>Por mapa: recoge todo y cómete al menos un fantasma con una estrella.</strong>
+      <strong>EN CADA MAPA: recoge todos los puntos y atrapa al menos un fantasma usando una estrella.</strong>
     </p>
     <div class="pac-layout">
       <div class="pac-hud">
@@ -418,13 +418,13 @@ export function pacman(ctx) {
           tabindex="0"
           role="img"
           aria-label="Laberinto del conejito. Controla con flechas, WASD o botones de dirección."
-        ></canvas>
+        >Tu navegador no puede mostrar este laberinto.</canvas>
         <div class="pac-overlay"></div>
       </div>
       <div class="pac-legend">
-        <span>✦ poder: 5 segundos</span>
+        <span>✦ atrapa fantasmas durante 5 segundos</span>
         <span>◉◉ ojitos: vuelven a casa</span>
-        <span>sin vidas · migas guardadas</span>
+        <span>sin vidas · puntos guardados</span>
       </div>
       <p class="pac-status" role="status"></p>
       <div class="pac-controls" aria-label="Controles de dirección">
@@ -457,14 +457,14 @@ export function pacman(ctx) {
   function hud() {
     const labels = {
       'pac-level': `MAPA ${game.level + 1} / 2`,
-      'pac-score': `${game.score} pts`,
-      'pac-left': `${game.pellets.size} migas`,
+      'pac-score': `${game.score} puntos`,
+      'pac-left': `${game.pellets.size} por recoger`,
       'pac-ghost-goal': `fantasma ${Math.min(1, game.ghostsEaten)} / 1`,
       'pac-status': game.powered
         ? `✦ ¡Peluche imparable! ${Math.ceil(game.powered / 1000)} s`
         : game.safe
-          ? 'Un pequeño escudo para coger carrerilla.'
-          : 'Rosa persigue · lila anticipa · menta improvisa · mostaza se lo piensa.',
+          ? 'Tienes unos segundos de protección para empezar.'
+          : 'Rosa: te sigue · morado: se adelanta · verde: explora · amarillo: cambia de plan.',
     };
     for (const [className, text] of Object.entries(labels)) {
       const label = root.querySelector(`.${className}`);
@@ -596,7 +596,7 @@ export function pacman(ctx) {
     drawing.fillStyle = '#93826b';
     drawing.font = '7px monospace';
     drawing.textAlign = 'center';
-    drawing.fillText('siesta club', maze.home.x * tile + 12, (maze.home.y + 1) * tile + 22);
+    drawing.fillText('zona de siesta', maze.home.x * tile + 12, (maze.home.y + 1) * tile + 22);
     for (const key of game.pellets) {
       const [x, y] = key.split(',').map(Number),
         px = (x + 0.5) * tile,
@@ -687,8 +687,8 @@ export function pacman(ctx) {
         ctx.sound('wrong');
         showOverlay(
           'Abrazo de fantasma.',
-          'Conservas los puntos, las migas y tu fantasma conseguido. Vuelves con un escudo de 3 segundos.',
-          'Sacudirse y seguir →',
+          'No pierdes lo que ya recogiste ni el fantasma que atrapaste. Al volver tienes 3 segundos de protección.',
+          'Intentar otra vez →',
           () => {
             game.retry();
             caughtShown = false;
@@ -700,13 +700,13 @@ export function pacman(ctx) {
         completedLevel = true;
         save();
         if (game.level === 1) {
-          ctx.win('Dos laberintos limpios. Un peluche con un currículum impresionante.');
+          ctx.win('¡Dos laberintos completos! Este peluche puede con todo.');
           return;
         }
         ctx.sound('success');
         showOverlay(
           '¡Primer mapa limpio!',
-          'El jardín de al lado es un poquito más grande. Mismo conejo, nuevas miguitas.',
+          '<strong>En el segundo mapa también debes recoger todos los puntos y atrapar un fantasma.</strong> El mapa es un poco más grande, pero los controles son los mismos.',
           'Al segundo jardín →',
           () => {
             game = new BunnyMaze(1, { score: game.score });
@@ -730,7 +730,7 @@ export function pacman(ctx) {
   draw();
   showOverlay(
     game.level ? 'De vuelta al jardín' : 'Operación: miguitas',
-    'Por mapa: recoge todas las migas y cómete un fantasma bajo el efecto de una estrella. Puedes pedir un giro antes de la esquina y cambiar de sentido al instante. Si falta el fantasma al final, reaparece una estrella.',
+    '<strong>Tienes dos objetivos en cada mapa: recoger todos los puntos y atrapar al menos un fantasma.</strong> Las estrellas te permiten atraparlos durante 5 segundos. Puedes preparar un giro antes de llegar a la esquina. Si al final aún falta el fantasma, aparece otra estrella.',
     '¡Conejito, corre! →',
     resume,
   );

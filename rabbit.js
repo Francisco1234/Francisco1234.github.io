@@ -132,6 +132,17 @@ export function rabbitGarden(seed, round = 0, attempt = 0) {
 
 export function rabbit(ctx) {
   const { root, stage } = ctx;
+  if (
+    ctx.announce(
+      'rabbit-border',
+      {
+        title: 'El borde es una salida, no una pared',
+        text: 'Coloca una valla y el conejo dará un salto. Ganas cuando no le queda ningún camino al borde, aunque todavía pueda moverse dentro. Puedes pensar todo el tiempo que necesites.',
+      },
+      () => rabbit(ctx),
+    )
+  )
+    return;
   let round = ctx.state.round || 0,
     attempt = ctx.state.attempt || 0;
   let garden = rabbitGarden(stage.seed, round, attempt);
@@ -170,7 +181,7 @@ export function rabbit(ctx) {
         Ganas cuando ya no hay ningún camino al borde. El borde punteado siempre es una salida,
         nunca una pared.
       </p>
-      <div class="trap-board" role="group" aria-label="Jardín de once por once. Usa las flechas para moverte y Enter para seleccionar.">
+      <div class="trap-board" role="group" aria-label="Jardín de once por once. Usa las flechas para moverte y la tecla Intro para seleccionar.">
         ${Array.from({ length: GARDEN_SIZE ** 2 }, (_, i) => {
           const border = gardenBorder(i),
             wall = walls.has(i),
@@ -216,7 +227,7 @@ export function rabbit(ctx) {
     if (next)
       next.onclick = () => {
         if (round === 1)
-          return ctx.win('Dos jardines cerrados. El conejo presenta una reclamación.');
+          return ctx.win('¡Cerraste los dos jardines! El conejo no está muy de acuerdo.');
         round++;
         newGarden();
         paint();
@@ -255,7 +266,7 @@ export function rabbit(ctx) {
         paint(
           outcome === 'trapped'
             ? '¡Encerrado! Puede pasear dentro; lo importante es que no puede salir.'
-            : 'Ha elegido una ruta mínima. ¿Cuál le cerrarás ahora?',
+            : 'Busca el camino más corto para salir. ¿Por dónde lo vas a bloquear?',
         );
       root
         .querySelector(outcome === 'trapped' ? '.garden-next' : `[data-trap="${cursor}"]`)

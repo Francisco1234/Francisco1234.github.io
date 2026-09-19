@@ -1,3 +1,5 @@
+import { RULE_GUIDES } from './puzzles.js';
+
 export const REGULAR_REGIONS = Array.from(
   { length: 36 },
   (_, i) => Math.floor(i / 12) * 2 + Math.floor((i % 6) / 3),
@@ -145,6 +147,8 @@ export function sudokuSolved(board, puzzle) {
 
 export function sudoku(ctx) {
   const { root, stage } = ctx;
+  const guide = RULE_GUIDES.sudoku[stage.variant];
+  if (ctx.announce(`sudoku-${stage.variant}`, guide, () => sudoku(ctx))) return;
   const pool = SUDOKUS.filter((p) => p.variant === stage.variant);
   const puzzle = pool[stage.seed % pool.length];
   let board =
@@ -156,6 +160,7 @@ export function sudoku(ctx) {
     selected = puzzle.givens.findIndex((n) => !n);
   const paths = puzzle.thermos || [];
   root.innerHTML = `
+    <p class="rule-reminder"><strong>${guide.reminder}</strong></p>
     <p class="game-instruction">
       Del
       <strong>1 al 6</strong>
@@ -164,7 +169,7 @@ export function sudoku(ctx) {
       ${
         stage.variant === 0
           ? 'Las regiones son irregulares: sigue los bordes, no los cuadrados.'
-          : 'En cada termómetro, los números aumentan desde el bulbo hasta la punta.'
+          : 'En cada termómetro, los números aumentan desde el círculo hasta la punta.'
       }
     </p>
     <div class="sudoku-wrap">
@@ -190,7 +195,7 @@ export function sudoku(ctx) {
       <button class="small-button pencil" aria-pressed="false">Lápiz: no</button>
       <button class="primary sudoku-check">Comprobar tablero</button>
     </div>
-    <p class="feedback" role="status">Las notas son tuyas: no hay relleno automático.</p>
+    <p class="feedback" role="status">Puedes usar el lápiz para anotar posibles números en una casilla.</p>
   `;
   function paint() {
     root.querySelector('.sudoku-board').innerHTML = board
@@ -244,12 +249,11 @@ export function sudoku(ctx) {
     board.forEach((n, i) => {
       if (n && sudokuConflicts(board, i, n, puzzle).length) conflicts.add(i);
     });
-    if (sudokuSolved(board, puzzle))
-      return ctx.win('Treinta y seis casillas. Ni una cifra de regalo.');
+    if (sudokuSolved(board, puzzle)) return ctx.win('¡Las 36 casillas están en su lugar!');
     conflicts.forEach((i) => root.querySelector(`[data-cell="${i}"]`).classList.add('conflict'));
     root.querySelector('.feedback').textContent = conflicts.size
-      ? 'Hay cifras que rompen una regla. Revisa las casillas marcadas; tu trabajo se conserva.'
-      : `No hay conflictos visibles. Quedan ${board.filter((n) => !n).length} casillas por resolver.`;
+      ? 'Hay números que no cumplen las reglas. Revisa las casillas marcadas; tus cambios se guardan.'
+      : `Por ahora las reglas se cumplen. Faltan ${board.filter((n) => !n).length} casillas.`;
   };
   ctx.listen(document, 'keydown', (event) => {
     if (ctx.suspended() || ['INPUT', 'SELECT'].includes(event.target.tagName)) return;

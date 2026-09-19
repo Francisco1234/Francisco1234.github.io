@@ -4,7 +4,7 @@ const rows = [
   [
     'Ciencia',
     1,
-    '¿Qué magnitud se conserva en una colisión perfectamente inelástica de un sistema aislado?',
+    'Dos objetos chocan y quedan unidos. Si no actúan fuerzas externas, ¿qué se conserva?',
     'Cantidad de movimiento',
     'Energía cinética',
     'Velocidad de cada objeto',
@@ -14,7 +14,7 @@ const rows = [
   [
     'Ciencia',
     2,
-    'Si duplicas la velocidad de un objeto, su energía cinética…',
+    'Si un objeto duplica su velocidad sin cambiar su masa, su energía cinética…',
     'Se cuadruplica',
     'Se duplica',
     'Se reduce a la mitad',
@@ -24,7 +24,7 @@ const rows = [
   [
     'Ciencia',
     2,
-    'En el vacío, ¿qué cae más rápido si ambos objetos parten del reposo?',
+    'En el vacío se sueltan una bola de plomo y una pluma desde la misma altura. ¿Cuál cae más rápido?',
     'Caen igual',
     'Una bola de plomo',
     'Una pluma',
@@ -74,7 +74,7 @@ const rows = [
   [
     'Ciencia',
     1,
-    'Una disolución con pH 3, frente a una con pH 5, tiene una concentración de H⁺…',
+    'En disoluciones diluidas, una de pH 3 tiene una concentración de H⁺ que, comparada con una de pH 5, es…',
     '100 veces mayor',
     '2 veces mayor',
     '10 veces mayor',
@@ -104,7 +104,7 @@ const rows = [
   [
     'Ciencia',
     1,
-    '¿Qué partícula distingue a dos isótopos del mismo elemento?',
+    '¿Qué cantidad cambia entre dos isótopos del mismo elemento?',
     'El número de neutrones',
     'El número de protones',
     'El signo de la carga del protón',
@@ -129,7 +129,7 @@ const rows = [
     'Mitocondria',
     'Ribosoma',
     'Lisosoma',
-    'Los cloroplastos contienen la maquinaria fotosintética.',
+    'La fotosíntesis ocurre en los cloroplastos.',
   ],
   [
     'Vida',
@@ -144,12 +144,12 @@ const rows = [
   [
     'Vida',
     3,
-    '¿Qué proceso produce normalmente gametos con la mitad de cromosomas?',
+    'En los seres humanos, ¿qué proceso forma gametos con la mitad de cromosomas?',
     'Meiosis',
     'Mitosis',
     'Ósmosis',
     'Traducción',
-    'La meiosis reduce la dotación cromosómica.',
+    'La meiosis reduce a la mitad el número de cromosomas.',
   ],
   [
     'Vida',
@@ -295,11 +295,11 @@ const rows = [
     'Espacio',
     3,
     'Una estrella de neutrones es…',
-    'Un remanente estelar muy denso',
+    'El resto muy denso de una estrella',
     'Una nube de hielo',
     'Un planeta sin atmósfera',
     'Una estrella recién formada',
-    'Es un remanente compacto del colapso de ciertas estrellas masivas.',
+    'Es lo que queda cuando el núcleo de ciertas estrellas grandes colapsa.',
   ],
   [
     'Espacio',
@@ -334,7 +334,7 @@ const rows = [
   [
     'Espacio',
     1,
-    '¿Qué planeta gira casi tumbado sobre su órbita?',
+    '¿Qué planeta gira con su eje tan inclinado que parece estar de lado?',
     'Urano',
     'Mercurio',
     'Marte',
@@ -616,7 +616,7 @@ const rows = [
     2,
     '¿Qué técnica pictórica utiliza pequeños puntos de color?',
     'Puntillismo',
-    'Collage',
+    'Mosaico',
     'Grabado al aguafuerte',
     'Fresco',
     'El puntillismo construye imágenes mediante puntos de color.',
@@ -644,12 +644,12 @@ const rows = [
   [
     'Arte',
     2,
-    '¿Qué es un haiku tradicional en su esquema japonés habitual?',
-    'Tres versos de 5, 7 y 5 moras',
+    '¿Cómo se organiza un haiku japonés tradicional?',
+    'Tres partes de 5, 7 y 5 moras',
     'Cuatro versos de ocho sílabas',
     'Dos versos rimados',
     'Una estrofa de catorce versos',
-    'El esquema japonés cuenta moras; no coincide exactamente con las sílabas españolas.',
+    'Las moras miden la duración de los sonidos en japonés; no coinciden exactamente con las sílabas del español.',
   ],
   [
     'Arte',
@@ -729,7 +729,7 @@ const rows = [
     'Cola',
     'Árbol ordenado',
     'Conjunto',
-    'Una pila es LIFO; una cola es FIFO.',
+    'En una pila sale primero lo último que entró. En una cola sale primero lo que entró primero.',
   ],
   [
     'Tecnología',
@@ -765,29 +765,29 @@ const rows = [
   [
     'Tecnología',
     3,
-    '¿Qué propiedad distingue una función hash criptográfica de un cifrado reversible?',
+    '¿Qué distingue a una función de resumen criptográfico de un cifrado que se puede deshacer?',
     'No está diseñada para recuperar la entrada',
     'Siempre produce archivos más grandes',
     'Necesita una contraseña para leerse',
     'Solo admite números',
-    'Un hash no ofrece una operación de descifrado para reconstruir la entrada.',
+    'Un resumen criptográfico no incluye un paso de descifrado para recuperar los datos originales.',
   ],
   [
     'Tecnología',
     1,
-    '¿Cuántos valores distintos puede representar un byte de 8 bits?',
+    '¿Cuántos valores distintos se pueden representar con ocho dígitos binarios?',
     '256',
     '128',
     '8',
     '512',
-    'Ocho bits permiten 2⁸ combinaciones.',
+    'Cada dígito puede ser 0 o 1, así que hay 2⁸ combinaciones.',
   ],
   [
     'Tecnología',
     2,
     '¿Qué significa que una compresión sea «sin pérdida»?',
     'Se recupera exactamente el original',
-    'Ocupa siempre cero bytes',
+    'No ocupa nada de espacio',
     'Solo funciona con texto',
     'No necesita descompresión',
     'No se descarta información necesaria para reconstruir el original.',
@@ -805,12 +805,12 @@ const rows = [
   [
     'Tecnología',
     1,
-    '¿Cuál es memoria volátil en un ordenador habitual?',
+    '¿Qué tipo de memoria pierde sus datos cuando apagas el equipo?',
     'RAM',
     'SSD',
     'Disco óptico',
-    'Memoria flash USB',
-    'La RAM habitual pierde sus datos al interrumpir la alimentación.',
+    'Memoria USB',
+    'La RAM necesita energía para conservar sus datos.',
   ],
   [
     'Tecnología',
@@ -845,7 +845,7 @@ const rows = [
   [
     'Números',
     2,
-    'Lanzas dos dados justos. ¿Qué suma tiene más combinaciones?',
+    'Lanzas dos dados normales de seis caras. ¿Qué suma puede salir de más formas?',
     '7',
     '6',
     '8',
@@ -885,7 +885,7 @@ const rows = [
   [
     'Números',
     3,
-    '¿Qué probabilidad hay de obtener exactamente dos caras en tres monedas justas?',
+    'Lanzas tres monedas sin trucar. ¿Qué probabilidad hay de que salgan exactamente dos caras?',
     '3/8',
     '1/2',
     '1/4',
@@ -955,7 +955,7 @@ const rows = [
   [
     'Historia',
     1,
-    '¿Qué escritura utilizó el antiguo Egipto junto a otras formas de escritura?',
+    '¿Cuál era una de las principales formas de escritura del antiguo Egipto?',
     'Jeroglífica',
     'Cuneiforme exclusivamente',
     'Hangul',
@@ -1075,7 +1075,7 @@ const rows = [
   [
     'Música',
     1,
-    '¿Cuántos semitonos hay en una octava de temperamento igual de doce tonos?',
+    'En la afinación habitual de un piano, ¿cuántos semitonos hay en una octava?',
     '12',
     '7',
     '8',
@@ -1249,9 +1249,7 @@ export function trivia(ctx) {
   function paint(message = '') {
     const mistakes = answers.filter((answer) => !answer.correct).length;
     if (answers.length === QUIZ_LENGTH && !reveal)
-      return ctx.win(
-        `${QUIZ_LENGTH - mistakes} respuestas acertadas. El club aprueba tu solicitud.`,
-      );
+      return ctx.win(`¡${QUIZ_LENGTH - mistakes} respuestas correctas! Ya tienes tu estrella.`);
     const index = reveal ? answers.length - 1 : answers.length;
     const question = TRIVIA[quiz[index]],
       options = triviaOptions(question, stage.seed, attempt);
@@ -1261,9 +1259,8 @@ export function trivia(ctx) {
         ${question.difficulty}
       </div>
       <p class="game-instruction">
-        La
-        <strong>tercera equivocación en todo el cuestionario</strong>
-        descarta las 12 preguntas y trae un lote nuevo.
+        <strong>Al tercer error entre todas las preguntas, empiezas un cuestionario nuevo.</strong>
+        Son 12 preguntas; los errores se cuentan entre todas, no por pregunta.
       </p>
       <div class="quiz-mistakes" aria-label="${mistakes} de ${MISTAKE_LIMIT} errores">
         ${Array.from(
@@ -1311,7 +1308,7 @@ export function trivia(ctx) {
             reveal = false;
             save();
             paint(
-              'Tres errores en total. Cuestionario descartado: estas 12 preguntas son distintas del lote anterior.',
+              'Llegaste a tres errores en total. Intenta otra vez con estas 12 preguntas nuevas.',
             );
           } else {
             save();

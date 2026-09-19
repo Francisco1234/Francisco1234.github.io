@@ -13,6 +13,7 @@ import {
   LIGHT_MASKS,
   lightPuzzle,
   ROUND_COUNTS,
+  RULE_GUIDES,
 } from './puzzles.js';
 
 function feedback(root, message, good = false) {
@@ -24,6 +25,46 @@ function feedback(root, message, good = false) {
     void output.offsetWidth;
     output.classList.add('shake');
   }
+}
+
+function validateFields(root, fields, numeric = () => false) {
+  for (const field of fields) field.removeAttribute('aria-invalid');
+  let invalid = fields.find((field) => !field.value.trim());
+  let message = 'Falta completar este campo.';
+  if (!invalid) {
+    invalid = fields.find(
+      (field) => numeric(field) && !/^[+-]?\d+$/.test(field.value.trim().replaceAll('−', '-')),
+    );
+    message = 'Escribe un número entero, sin letras ni decimales.';
+  }
+  if (!invalid) {
+    invalid = fields.find(
+      (field) =>
+        numeric(field) && !Number.isSafeInteger(Number(field.value.trim().replaceAll('−', '-'))),
+    );
+    message = 'Ese número es demasiado grande. Revísalo.';
+  }
+  if (!invalid) return true;
+  feedback(root, message);
+  root.querySelector('.feedback').id = 'game-feedback';
+  invalid.setAttribute('aria-invalid', 'true');
+  invalid.setAttribute('aria-describedby', 'game-feedback');
+  invalid.focus();
+  invalid.addEventListener('input', () => invalid.removeAttribute('aria-invalid'), { once: true });
+  return false;
+}
+
+function addChemistryReference(ctx) {
+  const row = document.createElement('div');
+  row.className = 'reference-tools';
+  row.innerHTML =
+    '<button type="button" class="small-button reference-button" aria-haspopup="dialog" aria-controls="modal">Ver tabla periódica</button>';
+  row.querySelector('button').onclick = () =>
+    ctx.modal(`
+    <h2>Tabla periódica</h2><p>Los primeros 15 elementos, en orden. <strong>Z es el número atómico: el número de protones.</strong></p>
+    <ol class="periodic-reference">${ELEMENTS.map(([symbol, name], i) => `<li><span class="atomic-number">Z = ${i + 1}</span><strong>${symbol}</strong><span>${name}</span></li>`).join('')}</ol>
+    <p>Puedes consultar esta tabla sin perder tus respuestas.</p>`);
+  ctx.root.querySelector('.game-instruction').after(row);
 }
 
 function anotherRound(ctx, explanation, next) {
@@ -58,11 +99,12 @@ export function numberPuzzle(ctx) {
     attempt = ctx.state.attempt || 0;
   function paint(message = '') {
     const question = numberQuestion(stage.type, stage.seed, round, attempt);
+    if (ctx.announce(`${stage.type}-${round}`, question.guide, () => paint(message))) return;
     let board = '';
     if (stage.type === 'sequence')
-      board = `<div class="sequence-row">${question.values.map((n) => `<span class="number-tile ${typeof n === 'string' ? 'missing' : ''}">${n}</span>`).join('')}</div>`;
+      board = `<div class="sequence-row">${question.values.map((n, i) => `<span class="number-tile ${typeof n === 'string' ? 'missing' : ''}" role="img" aria-label="Posición ${i + 1}: ${n}"><span aria-hidden="true">${n}</span></span>`).join('')}</div>`;
     if (stage.type === 'circle')
-      board = `<div class="circle-board"><span class="circle-center" aria-hidden="true">↻</span>${question.values.map((n, i) => `<span class="number-tile ${typeof n === 'string' ? 'missing' : ''}" style="--x:${Math.sin((i * Math.PI) / 4) * 108}px;--y:${-Math.cos((i * Math.PI) / 4) * 108}px">${n}</span>`).join('')}</div>`;
+      board = `<div class="circle-board"><span class="circle-center" aria-hidden="true">↻</span>${question.values.map((n, i) => `<span class="number-tile ${typeof n === 'string' ? 'missing' : ''}" role="img" aria-label="Posición ${i + 1}: ${n}" style="--x:${Math.sin((i * Math.PI) / 4) * 108}px;--y:${-Math.cos((i * Math.PI) / 4) * 108}px"><span aria-hidden="true">${n}</span></span>`).join('')}</div>`;
     if (stage.type === 'equation')
       board = `<div class="equation-display">${question.equations.map((line) => `<div>${line}</div>`).join('')}</div>`;
     if (stage.type === 'mystery')
@@ -71,31 +113,36 @@ export function numberPuzzle(ctx) {
       board = `<div class="number-grid" style="grid-template-columns:repeat(${question.columns},minmax(0,1fr))">${question.values.map((n) => `<span class="number-tile ${typeof n === 'string' ? 'missing' : ''}">${n}</span>`).join('')}</div>`;
     root.innerHTML = `
       <div class="round-label">RETO ${round + 1} / ${ROUND_COUNTS[stage.type]}</div>
+      <p class="rule-reminder"><strong>${question.guide.reminder}</strong></p>
       <p class="game-instruction">${question.note}</p>
       ${board}
-      <form class="answer-form multi-answer">
+      <form class="answer-form multi-answer" novalidate>
         ${question.answers
           .map(
             (answer, i) =>
-              `<label>${question.labels[i]}<input name="answer-${i}" type="text" inputmode="${answer < 0 ? 'text' : 'numeric'}" autocomplete="off" maxlength="6" required aria-label="Valor de ${question.labels[i]}"></label>`,
+              `<label>${question.labels[i]}<input name="answer-${i}" type="text" inputmode="${answer < 0 ? 'text' : 'numeric'}" autocomplete="off" spellcheck="false" aria-required="true" aria-label="Valor de ${question.labels[i]}"></label>`,
           )
           .join('')}
         <button class="primary" type="submit">Enviar solución ↵</button>
       </form>
       <p class="attempt-note">
-        Una solución incorrecta cambia el reto. Las rondas ya resueltas se conservan.
+        Si la respuesta no es correcta, el reto cambia. Las rondas que ya completaste se guardan.
       </p>
       <p class="feedback" role="status">${message}</p>
+      ${stage.type === 'sequence' && question.hint ? `<div class="hint-row"><button type="button" class="hint-button sequence-hint" aria-expanded="false" aria-controls="sequence-hint-text">💡 Pista</button><p id="sequence-hint-text" class="hint-text" hidden>${question.hint}</p></div>` : ''}
     `;
+    const hint = root.querySelector('.sequence-hint');
+    if (hint)
+      hint.onclick = () => {
+        const text = root.querySelector('#sequence-hint-text');
+        text.hidden = !text.hidden;
+        hint.setAttribute('aria-expanded', String(!text.hidden));
+      };
     root.querySelector('form').onsubmit = (event) => {
       event.preventDefault();
-      const values = [...root.querySelectorAll('input')].map((input) =>
-        input.value.trim().replace('−', '-'),
-      );
-      if (values.some((value) => !/^-?\d+$/.test(value))) {
-        feedback(root, 'Escribe un número entero en cada casilla.');
-        return;
-      }
+      const fields = [...root.querySelectorAll('input')];
+      if (!validateFields(root, fields, () => true)) return;
+      const values = fields.map((input) => input.value.trim().replaceAll('−', '-'));
       if (!values.every((value, i) => Number(value) === question.answers[i])) {
         const previous = JSON.stringify(question);
         do {
@@ -105,9 +152,7 @@ export function numberPuzzle(ctx) {
         );
         ctx.patch({ attempt });
         ctx.sound('wrong');
-        paint(
-          'No encajaba. Ha llegado un reto nuevo; piensa la solución completa antes de enviarla.',
-        );
+        paint('Esa respuesta no era correcta. Aquí tienes un reto nuevo. Intenta otra vez.');
         return;
       }
       ctx.sound('pop');
@@ -139,7 +184,7 @@ export function chemistry(ctx) {
       );
       ctx.patch({ attempt, assignments: {}, ordered: [], entries: [] });
       ctx.sound('wrong');
-      paint('Ese lote no cuadraba. Mesa nueva: no se conserva la respuesta anterior.');
+      paint('Alguna respuesta no coincide. Hay fichas nuevas; intenta otra vez.');
     };
     const pass = () => {
       ctx.sound('pop');
@@ -147,7 +192,7 @@ export function chemistry(ctx) {
       if (round === rounds)
         return ctx.win('Fichas, protones y símbolos. El laboratorio queda en orden.');
       ctx.patch({ round, assignments: {}, ordered: [], entries: [] });
-      anotherRound(ctx, 'Lote comprobado. El siguiente trae otras fichas.', () => paint());
+      anotherRound(ctx, '¡Todas correctas! Vamos con otras fichas.', () => paint());
     };
     let content = '';
     if (question.kind === 'files' || question.kind === 'deduction') {
@@ -157,21 +202,22 @@ export function chemistry(ctx) {
           : question.targets.map((index, i) => ({
               label: `Símbolo de ${String.fromCharCode(65 + i)}`,
               answer: ELEMENTS[index][0],
+              kind: 'symbol',
             }));
-      content = `${question.clues ? `<ul class="clue-list">${question.clues.map((clue) => `<li>${clue}</li>`).join('')}</ul>` : ''}<form class="chem-files">${fields.map((field, i) => `<label class="chem-file">${field.label}<input data-entry="${i}" autocomplete="off" maxlength="24" required></label>`).join('')}<button class="primary" type="submit">Comprobar lote</button></form>`;
+      content = `${question.clues ? `<ul class="clue-list">${question.clues.map((clue) => `<li>${clue}</li>`).join('')}</ul>` : ''}<form class="chem-files" novalidate>${fields.map((field, i) => `<label class="chem-file">${field.label}<input data-entry="${i}" data-kind="${field.kind}" type="text" inputmode="${field.kind === 'integer' ? 'numeric' : 'text'}" autocomplete="off" spellcheck="false" aria-required="true"></label>`).join('')}<button class="primary" type="submit">Comprobar respuestas</button></form>`;
       root.innerHTML = `
         <div class="round-label">
-          ${question.kind === 'files' ? 'FICHAS EXTRAVIADAS' : 'DETECTIVE DE PROTONES'} ·
+          ${question.kind === 'files' ? 'FICHAS INCOMPLETAS' : 'DETECTIVE DE PROTONES'} ·
           ${round + 1} / ${rounds}
         </div>
         <p class="game-instruction">
           ${
             question.kind === 'files'
-              ? 'Reconstruye las cinco fichas. Símbolos, nombres y números atómicos se han mezclado.'
+              ? 'Resuelve las cinco fichas usando la tabla. Algunas piden un símbolo, otras un nombre y otra un número.'
               : 'Identifica A, B, C y D. Z es el número de protones. Escribe sus símbolos.'
           }
           <br />
-          Solo los primeros 15 elementos. Sin tabla de respuestas.
+          <strong>Z es el número atómico.</strong> Puedes consultar los primeros 15 elementos en la tabla.
         </p>
         ${content}
         <p class="feedback" role="status">${message}</p>
@@ -183,8 +229,12 @@ export function chemistry(ctx) {
       });
       root.querySelector('form').onsubmit = (event) => {
         event.preventDefault();
-        const correct = [...root.querySelectorAll('input')].every(
-          (input, i) => normalizeAnswer(input.value) === normalizeAnswer(fields[i].answer),
+        const inputs = [...root.querySelectorAll('input')];
+        if (!validateFields(root, inputs, (input) => input.dataset.kind === 'integer')) return;
+        const correct = inputs.every((input, i) =>
+          fields[i].kind === 'integer'
+            ? Number(input.value.trim().replaceAll('−', '-')) === Number(fields[i].answer)
+            : normalizeAnswer(input.value) === normalizeAnswer(fields[i].answer),
         );
         correct ? pass() : fail();
       };
@@ -192,16 +242,17 @@ export function chemistry(ctx) {
       root.innerHTML = `
         <div class="round-label">PAREJAS SOSPECHOSAS · ${round + 1} / ${rounds}</div>
         <p class="game-instruction">
-          Toca un símbolo y luego su nombre. Completa las siete parejas antes de comprobar.
+          <strong>Ahora une cada cálculo con el nombre del elemento que le corresponde.</strong>
+          Consulta Z en la tabla y completa las siete parejas.
           <br />
-          Para cambiar una pareja, vuelve a tocar su símbolo.
+          Para cambiar una pareja, vuelve a tocar el cálculo.
         </p>
         <div class="matching-board">
           <div class="match-symbols"></div>
           <div class="match-names"></div>
         </div>
         <div class="game-center">
-          <button class="primary check-matches">Sellar las siete parejas</button>
+          <button class="primary check-matches">Comprobar parejas</button>
         </div>
         <p class="feedback" role="status">${message}</p>
       `;
@@ -209,7 +260,7 @@ export function chemistry(ctx) {
         root.querySelector('.match-symbols').innerHTML = question.targets
           .map(
             (index) =>
-              `<button class="match-card ${selected === index ? 'selected' : ''}" data-symbol="${index}"><strong>${ELEMENTS[index][0]}</strong><span>${assignments[index] !== undefined ? ELEMENTS[assignments[index]][1] : '¿quién soy?'}</span></button>`,
+              `<button class="match-card ${selected === index ? 'selected' : ''}" data-symbol="${index}"><strong>${question.cards.find((card) => card.index === index).text}</strong><span>${assignments[index] !== undefined ? ELEMENTS[assignments[index]][1] : '¿qué elemento es?'}</span></button>`,
           )
           .join('');
         root.querySelector('.match-names').innerHTML = question.names
@@ -252,7 +303,7 @@ export function chemistry(ctx) {
       renderMatches();
     } else {
       root.innerHTML = `
-        <div class="round-label">ARCHIVO ATÓMICO</div>
+        <div class="round-label">ORDEN ATÓMICO</div>
         <p class="game-instruction">
           Ordena las diez fichas de menor a mayor número atómico.
           <br />
@@ -261,7 +312,7 @@ export function chemistry(ctx) {
         <div class="order-slots chem-order"></div>
         <div class="order-choices"></div>
         <div class="game-center">
-          <button class="primary check-order">Cerrar el archivo</button>
+          <button class="primary check-order">Comprobar orden</button>
         </div>
         <p class="feedback" role="status">${message}</p>
       `;
@@ -298,13 +349,14 @@ export function chemistry(ctx) {
       }
       root.querySelector('.check-order').onclick = () => {
         if (ordered.length < question.targets.length) {
-          feedback(root, 'El archivo todavía tiene huecos.');
+          feedback(root, 'Falta colocar algunas fichas.');
           return;
         }
         ordered.every((index, i) => index === question.targets[i]) ? pass() : fail();
       };
       renderOrder();
     }
+    addChemistryReference(ctx);
   }
   paint();
 }
@@ -329,20 +381,22 @@ export function memory(ctx) {
     entered = [];
     save();
     const puzzle = memoryPuzzle(stage.seed, round, attempt);
+    const guide = RULE_GUIDES.memory[round];
     root.innerHTML = `
       <div class="round-label">MEMORIA ${round + 1} / 3</div>
-      <p class="game-instruction">
-        ${instructions[round]}
-        <br />
-        Tienes ${puzzle.seconds} segundos para mirar. Un fallo trae una combinación nueva.
-      </p>
-      <div class="memory-display"><span style="font-size:42px" aria-hidden="true">◉ ◡ ◉</span></div>
-      <div class="game-center">
-        <button class="primary reveal-memory">Hacer foto mental →</button>
-      </div>
+      <section class="rule-change-card memory-intro" aria-labelledby="memory-rule-heading">
+        <strong class="eyebrow">${round ? 'IMPORTANTE: CAMBIA LA REGLA' : 'ANTES DE EMPEZAR'}</strong>
+        <h2 id="memory-rule-heading">${guide.title}</h2><p>${guide.text}</p>
+        <p><strong>Tienes ${puzzle.seconds} segundos para mirar.</strong> Si fallas, la siguiente combinación será distinta.</p>
+        <div class="memory-face" aria-hidden="true">◉ ◡ ◉</div>
+        <button type="button" class="primary reveal-memory">${round === 1 ? 'Entendido: empezar por la última' : 'Entendido, empezar →'}</button>
+      </section>
       <p class="feedback" role="status">${message}</p>
     `;
-    root.querySelector('button').onclick = reveal;
+    root.querySelector('.reveal-memory').onclick = () => {
+      ctx.patch({ memoryRuleConfirmed: round });
+      reveal();
+    };
   }
   function reveal() {
     const puzzle = memoryPuzzle(stage.seed, round, attempt);
@@ -350,6 +404,7 @@ export function memory(ctx) {
     entered = [];
     save();
     root.innerHTML = `
+      <p class="rule-reminder memory-rule"><strong>${RULE_GUIDES.memory[round].reminder}</strong></p>
       <p class="game-instruction">${instructions[round]}</p>
       ${
         round === 2
@@ -370,6 +425,7 @@ export function memory(ctx) {
     const puzzle = memoryPuzzle(stage.seed, round, attempt);
     root.innerHTML = `
       <div class="round-label">MEMORIA ${round + 1} / 3</div>
+      <p class="rule-reminder memory-rule"><strong>${RULE_GUIDES.memory[round].reminder}</strong></p>
       <p class="game-instruction">
         ${
           round === 2
@@ -448,8 +504,18 @@ export function memory(ctx) {
   });
   ctx.listen(window, 'arcade-pause', pauseReveal);
   if (round >= 3) ctx.win('Tres recuerdos, tres reglas.');
-  else if (phase === 'recall') recall();
-  else {
+  else if (phase === 'recall') {
+    const guide = RULE_GUIDES.memory[round];
+    if (
+      ctx.state.memoryRuleConfirmed !== round &&
+      ctx.announce(`memory-${round}`, guide, () => {
+        ctx.patch({ memoryRuleConfirmed: round });
+        recall();
+      })
+    )
+      return;
+    recall();
+  } else {
     if (phase === 'show') attempt = nextMemoryAttempt(stage.seed, round, attempt);
     intro();
   }
@@ -462,16 +528,28 @@ export function reactionPassed(trials, threshold) {
 }
 export function reaction(ctx) {
   const { root } = ctx;
-  const threshold = matchMedia('(pointer: coarse)').matches ? 290 : 260;
+  const threshold = 290;
+  if (
+    !ctx.state.won &&
+    ctx.announce(
+      'reaction',
+      {
+        title: 'Cuentan tres de los cinco intentos',
+        text: `Completa cinco intentos. Para ganar, al menos tres deben ser de ${threshold} ms o menos. Toca solo cuando aparezca ¡YA! en verde. Si tocas antes, ese intento cuenta como lento.`,
+      },
+      () => reaction(ctx),
+    )
+  )
+    return;
   let trials = ctx.state.trials || [],
     phase = 'idle',
     started = 0,
     timer;
   root.innerHTML = `
     <p class="game-instruction">
-      <strong>Cinco intentos. Mediana de ${threshold} ms o menos.</strong>
+      <strong>Al menos tres de cinco intentos en ${threshold} ms o menos.</strong>
       <br />
-      150 ms o menos es excelente, no obligatorio. Anticiparte consume un intento de 1000 ms.
+      Termina los cinco intentos. 150 ms o menos es excelente, pero no obligatorio. Tocar antes de tiempo cuenta como 1000 ms.
     </p>
     <div class="reaction-trials"></div>
     <button class="reaction-pad" aria-live="polite">
@@ -484,7 +562,7 @@ export function reaction(ctx) {
   const pad = root.querySelector('.reaction-pad');
   function hud() {
     root.querySelector('.reaction-trials').textContent =
-      `Serie: ${trials.map((n) => (n === 1000 ? 'antes de tiempo' : n + ' ms')).join(' · ') || '0 / 5'}`;
+      `Serie: ${trials.map((n) => n + ' ms').join(' · ') || '0 / 5'}`;
     root.querySelector('.reaction-best').textContent = ctx.bestReaction()
       ? `MEJOR REFLEJO VÁLIDO: ${ctx.bestReaction()} ms`
       : 'MEJOR REFLEJO: todavía es un misterio';
@@ -497,16 +575,16 @@ export function reaction(ctx) {
     hud();
     pad.className = 'reaction-pad result';
     pad.innerHTML = `
-      <strong>${early ? '¡ANTES NO!' : `${elapsed} ms`}</strong>
+      <strong>${early ? '¡TODAVÍA NO!' : `${elapsed} ms`}</strong>
       <span>
         ${
           early
-            ? 'Esta salida cuenta como 1000 ms.'
+            ? 'Tocaste antes de tiempo. Este intento cuenta como 1000 ms.'
             : elapsed <= REACTION_EXCELLENT
               ? '¡Excelente! Ahora hace falta constancia.'
               : elapsed <= threshold
-                ? 'Dentro del objetivo.'
-                : 'Too slow :( · La serie todavía puede recuperarse.'
+                ? '¡A tiempo!'
+                : 'Un poco lento. Todavía puedes lograrlo.'
         }
         Toca para seguir.
       </span>
@@ -523,7 +601,7 @@ export function reaction(ctx) {
       } else {
         feedback(
           root,
-          `Mediana: ${median} ms. Objetivo: ${threshold}. La siguiente pulsación empieza otra serie.`,
+          `Esta serie no alcanzó el objetivo. Resultado central: ${median} ms; objetivo: ${threshold} ms. Toca para intentar otra vez.`,
         );
       }
     }
@@ -538,14 +616,15 @@ export function reaction(ctx) {
       }
       phase = 'waiting';
       pad.className = 'reaction-pad waiting';
-      pad.innerHTML = '<strong>WAIT…</strong><span>Solo cuenta la señal verde con CLICK.</span>';
+      pad.innerHTML =
+        '<strong>ESPERA…</strong><span>Toca solo cuando aparezca ¡YA! en verde.</span>';
       timer = ctx.later(
         () =>
           ctx.frame(() => {
             if (phase !== 'waiting') return;
             if (ctx.suspended()) return cancel();
             pad.className = 'reaction-pad ready';
-            pad.innerHTML = '<strong>CLICK!</strong><span>¡Ahora!</span>';
+            pad.innerHTML = '<strong>¡YA!</strong><span>¡Toca ahora!</span>';
             started = performance.now();
             phase = 'ready';
           }),
@@ -629,8 +708,10 @@ export function visual(ctx) {
     attempt = ctx.state.attempt || 0;
   function paint(message = '') {
     const question = visualQuestion(stage.seed, round, attempt);
+    if (ctx.announce(`visual-${round}`, question.guide, () => paint(message))) return;
     root.innerHTML = `
       <div class="round-label">OBSERVACIÓN ${round + 1} / 3</div>
+      <p class="rule-reminder"><strong>${question.guide.reminder}</strong></p>
       <p class="game-instruction">${question.note}</p>
       <div class="visual-matrix ${question.columns === 6 ? 'strip' : ''}">
         ${question.tiles.map(maskTile).join('')}
@@ -661,12 +742,12 @@ export function visual(ctx) {
             } while (JSON.stringify(visualQuestion(stage.seed, round, attempt).tiles) === previous);
             ctx.patch({ attempt });
             ctx.sound('wrong');
-            paint('No era esa transformación. Un dibujo distinto ocupa su lugar.');
+            paint('Esa ficha no encaja. Aquí tienes otro dibujo; intenta otra vez.');
             return;
           }
           round++;
           ctx.sound('pop');
-          if (round === 3) return ctx.win('Giros, superposiciones y espejos. Lo has visto todo.');
+          if (round === 3) return ctx.win(question.rule);
           ctx.patch({ round, attempt });
           anotherRound(ctx, question.rule, () => paint());
         }),
@@ -689,12 +770,12 @@ export function logic(ctx) {
       <ul class="clue-list">
         ${puzzle.clues.map((clue) => `<li>${clue}</li>`).join('')}
       </ul>
-      <form class="cookie-form">
+      <form class="cookie-form" novalidate>
         <div class="logic-cards four">
           ${puzzle.animals
             .map(
               (animal, i) =>
-                `<div class="logic-card"><span class="character" aria-hidden="true">${['🐻', '🐸', '🐈', '🦊'][i]}</span><strong>${animal}</strong><label for="cookies-${i}">Galletas</label><select id="cookies-${i}" required><option value="">¿Cuántas?</option>${puzzle.amounts.map((n) => `<option value="${n}">${n} 🍪</option>`).join('')}</select><label for="drink-${i}">Bebida</label><select id="drink-${i}" required><option value="">¿Qué bebe?</option>${puzzle.drinks.map((drink) => `<option>${drink}</option>`).join('')}</select></div>`,
+                `<div class="logic-card"><span class="character" aria-hidden="true">${['🐻', '🐸', '🐈', '🦊'][i]}</span><strong>${animal}</strong><label for="cookies-${i}">Galletas</label><select id="cookies-${i}" aria-required="true"><option value="">¿Cuántas?</option>${puzzle.amounts.map((n) => `<option value="${n}">${n} 🍪</option>`).join('')}</select><label for="drink-${i}">Bebida</label><select id="drink-${i}" aria-required="true"><option value="">¿Qué bebe?</option>${puzzle.drinks.map((drink) => `<option>${drink}</option>`).join('')}</select></div>`,
             )
             .join('')}
         </div>
@@ -711,6 +792,7 @@ export function logic(ctx) {
     });
     root.querySelector('form').onsubmit = (event) => {
       event.preventDefault();
+      if (!validateFields(root, selects)) return;
       const choices = puzzle.animals.map((_, i) => ({
         cookies: Number(root.querySelector(`#cookies-${i}`).value),
         drink: root.querySelector(`#drink-${i}`).value,
@@ -723,7 +805,9 @@ export function logic(ctx) {
       } while (JSON.stringify(cookiePuzzle(stage.seed, attempt)) === previous);
       ctx.patch({ attempt, choices: [] });
       ctx.sound('wrong');
-      paint('Ese reparto rompía una condición. Los animalitos han hecho un pedido nuevo.');
+      paint(
+        'Una de las pistas no se cumple. Los animales tienen un pedido nuevo; intenta otra vez.',
+      );
     };
   }
   paint();
@@ -731,6 +815,17 @@ export function logic(ctx) {
 
 export function switches(ctx) {
   const { root, stage } = ctx;
+  if (
+    ctx.announce(
+      'switches',
+      {
+        title: 'Cada botón cambia hasta cinco luces',
+        text: 'Cambia su luz y las de arriba, abajo, izquierda y derecha. Las diagonales no cambian. Apaga todo en diez toques. Puedes deshacer para probar otro plan.',
+      },
+      () => switches(ctx),
+    )
+  )
+    return;
   let attempt = ctx.state.attempt || 0,
     puzzle = lightPuzzle(stage.seed, attempt);
   let lights = ctx.state.lights ?? puzzle.lights,
@@ -757,7 +852,7 @@ export function switches(ctx) {
         <button class="small-button undo-light" ${history.length ? '' : 'disabled'}>
           ← Deshacer
         </button>
-        <button class="small-button reset-light">Replantear este circuito</button>
+        <button class="small-button reset-light">Empezar este circuito de nuevo</button>
       </div>
       <p class="feedback" role="status">${message}</p>
     `;
@@ -780,7 +875,7 @@ export function switches(ctx) {
             history = [];
             ctx.patch({ lights, history, attempt });
             paint(
-              'Diez pulsaciones y aún había luz. Circuito nuevo; conserva la idea, no la secuencia.',
+              'Llegaste a diez toques y todavía hay luces encendidas. Aquí tienes otro circuito; intenta otra vez.',
             );
           } else {
             const key = button.dataset.light;
@@ -864,12 +959,9 @@ export function egg(ctx) {
     button.disabled = true;
     root.querySelector('.egg-wrap').innerHTML =
       '<span class="hatched" aria-label="Ha nacido una gallina">🐔</span><span class="egg-hat" aria-hidden="true">🎩</span>';
-    root.querySelector('.egg-message').textContent = '¡CRACK! Era una gallina. Nadie lo vio venir.';
+    root.querySelector('.egg-message').textContent = '¡CRAC! Era una gallina. Nadie lo vio venir.';
     ctx.sound('success');
-    ctx.later(
-      () => ctx.win('250 toques para una gallina con sombrero. Decisiones impecables.'),
-      1200,
-    );
+    ctx.later(() => ctx.win('250 toques y una gallina con sombrero. Valió la pena.'), 1200);
   }
   button.onclick = () => {
     if (hatched) return;

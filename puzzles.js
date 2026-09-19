@@ -22,6 +22,135 @@ export const SEGMENTS = [
   'abcdefg',
   'abcdfg',
 ];
+export const RULE_GUIDES = {
+  sequence: [
+    {
+      title: 'Encuentra los números que faltan',
+      text: 'Lee las fichas de izquierda a derecha y descubre el patrón para completar A y B.',
+      reminder: 'De izquierda a derecha · A va antes que B',
+    },
+    {
+      title: 'Un nuevo patrón',
+      text: 'Esta ronda tiene una regla distinta. Observa las seis fichas y deduce qué números faltan.',
+      reminder: 'De izquierda a derecha · A va antes que B',
+    },
+    {
+      title: 'Un último patrón',
+      text: 'Completa A y B a partir de las fichas que aparecen. Puedes abrir la pista si la necesitas.',
+      reminder: 'De izquierda a derecha · A va antes que B',
+    },
+  ],
+  circle: [
+    {
+      title: 'Un número por descubrir',
+      text: 'Observa todas las fichas del círculo y busca la relación que permite completar A.',
+      reminder: 'Completa la casilla A',
+    },
+    {
+      title: 'Otra vuelta, otro patrón',
+      text: 'Empieza arriba y lee una sola vuelta en sentido horario, hasta B. Esta ronda tiene una regla distinta.',
+      reminder: 'Desde arriba, en sentido horario ↻',
+    },
+  ],
+  equation: [
+    {
+      title: 'Dos ecuaciones, los mismos valores',
+      text: 'Busca x e y. Los valores que elijas tienen que servir en las dos ecuaciones.',
+      reminder: 'x e y deben cumplir las dos igualdades',
+    },
+    {
+      title: 'Ahora busca solo x',
+      text: 'Esta ronda tiene una sola incógnita. Los paréntesis también forman parte de la cuenta.',
+      reminder: 'Una incógnita: x',
+    },
+    {
+      title: 'Ahora hay fracciones',
+      text: 'Las dos líneas forman una sola ecuación. La respuesta de x sigue siendo un número entero.',
+      reminder: 'Una sola ecuación · respuesta entera',
+    },
+  ],
+  mystery: [
+    {
+      title: '¿Qué hace esta máquina?',
+      text: 'Las cuatro primeras filas son ejemplos completos. Descubre la regla y encuentra los dos resultados que faltan.',
+      reminder: 'Entrada → salida · La misma regla en cada fila',
+    },
+    {
+      title: 'Nueva máquina, nueva regla',
+      text: 'Esta máquina no sigue la regla de la anterior. Compara los ejemplos y completa A y B.',
+      reminder: 'Entrada → salida · La misma regla en cada fila',
+    },
+    {
+      title: 'La última máquina',
+      text: 'La regla vuelve a cambiar. Usa los ejemplos completos para descubrir qué hace esta máquina.',
+      reminder: 'Entrada → salida · La misma regla en cada fila',
+    },
+  ],
+  grid: [
+    {
+      title: 'Esta regla se lee por filas',
+      text: 'Cada fila sigue la misma regla. Compara las tres filas completas y deduce qué número falta en la última.',
+      reminder: 'Lee cada fila de izquierda a derecha →',
+    },
+    {
+      title: 'Ahora la regla va por columnas',
+      text: 'No sigas la regla de las filas. En cada columna, las dos casillas de arriba sirven para calcular la de abajo.',
+      reminder: 'Lee cada columna de arriba abajo ↓',
+    },
+    {
+      title: 'Ahora todas las líneas suman lo mismo',
+      text: 'Cada fila, cada columna y las dos diagonales deben dar el mismo total. No se usa la regla de la ronda anterior.',
+      reminder: 'Filas, columnas y diagonales: la misma suma',
+    },
+  ],
+  visual: [
+    {
+      title: 'Encuentra la ficha que sigue',
+      text: 'Lee de izquierda a derecha. Si las fichas ocupan dos filas, sigue por la segunda. Elige la que falta.',
+      reminder: 'De izquierda a derecha →',
+    },
+    {
+      title: 'Ahora mira las filas',
+      text: 'Las dos primeras filas están completas. Busca el patrón que permite completar la tercera.',
+      reminder: 'Cada fila se lee de izquierda a derecha',
+    },
+    {
+      title: 'Otra cuadrícula, otro patrón',
+      text: 'Esta ronda tiene una regla distinta. Mira los ejemplos de arriba y completa la última fila.',
+      reminder: 'Usa las filas completas como ejemplos',
+    },
+  ],
+  memory: [
+    {
+      title: 'De izquierda a derecha',
+      text: 'Mira las seis fichas. Después repítelas en el mismo orden en que aparecen.',
+      reminder: 'IZQUIERDA → DERECHA',
+    },
+    {
+      title: 'Esta ronda va de derecha a izquierda',
+      text: 'La regla cambió: empieza por la última ficha y termina por la primera. No repitas el orden de la ronda anterior.',
+      reminder: '← DE DERECHA A IZQUIERDA · empieza por la última',
+    },
+    {
+      title: 'Ahora recuerda las posiciones',
+      text: 'Memoriza en qué casilla está cada símbolo. Después verás los símbolos en una lista: toca sus casillas en el orden de esa lista.',
+      reminder: 'Ahora importan las casillas, no leer al revés',
+    },
+  ],
+  sudoku: [
+    {
+      title: 'Las regiones tienen formas distintas',
+      text: 'Usa del 1 al 6 sin repetir en filas, columnas ni regiones. Para ver las regiones, sigue los bordes gruesos: no son los bloques rectangulares de siempre.',
+      reminder: 'Regiones irregulares: sigue los bordes gruesos',
+    },
+    {
+      title: 'Ahora también cuentan los termómetros',
+      text: 'Sigue usando del 1 al 6 en filas, columnas y regiones. Además, en cada termómetro los números deben aumentar desde el círculo hasta la punta. Pueden saltarse números.',
+      reminder: 'TERMÓMETROS: del círculo hacia la punta, siempre aumentando',
+    },
+  ],
+};
+
 const signed = (n) => (n < 0 ? `− ${-n}` : `+ ${n}`);
 
 export function numberQuestion(type, seed, round, attempt = 0) {
@@ -31,13 +160,14 @@ export function numberQuestion(type, seed, round, attempt = 0) {
   if (type === 'sequence') {
     if (round === 0) {
       const start = pick(2, 9),
-        shift = pick(0, 3),
+        firstStep = pick(3, 5),
+        growth = pick(2, 3),
         values = [start];
-      for (let i = 2; i <= 8; i++) values.push(values.at(-1) + (i * (i + 1)) / 2 + shift);
+      for (let i = 0; i < 7; i++) values.push(values.at(-1) + firstStep + i * growth);
       question = {
         values: [...values.slice(0, 6), 'A', 'B'],
         answers: values.slice(6),
-        rule: `Los saltos son números triangulares${shift ? ` más ${shift}` : ''}: sus aumentos crecen de uno en uno.`,
+        rule: `Los saltos empiezan en +${firstStep} y aumentan de ${growth} en ${growth}.`,
       };
     } else if (round === 1) {
       const a = pick(2, 8),
@@ -47,16 +177,16 @@ export function numberQuestion(type, seed, round, attempt = 0) {
       question = {
         values: [a, b, a + step, b - drop, a + step * 2, b - drop * 2, 'A', 'B'],
         answers: [a + step * 3, b - drop * 3],
-        rule: `Dos hilos: uno suma ${step}; el otro resta ${drop}.`,
+        rule: `Hay dos series intercaladas: las posiciones 1, 3, 5… suman ${step}; las posiciones 2, 4, 6… restan ${drop}.`,
       };
     } else {
-      const values = [pick(1, 4), pick(5, 8)],
-        extra = pick(1, 3);
-      while (values.length < 8) values.push(values.at(-1) + values.at(-2) + extra);
+      const values = [pick(1, 4), pick(5, 8)];
+      while (values.length < 8) values.push(values.at(-1) + values.at(-2));
       question = {
         values: [...values.slice(0, 6), 'A', 'B'],
         answers: values.slice(6),
-        rule: `Cada ficha suma las dos anteriores y añade ${extra}.`,
+        hint: 'Mira los números de dos en dos. ¿Cómo puedes combinarlos para obtener el que viene después?',
+        rule: 'Cada número es la suma de los dos anteriores.',
       };
     }
     question.note = 'Encuentra los dos siguientes números. A va antes que B.';
@@ -64,23 +194,24 @@ export function numberQuestion(type, seed, round, attempt = 0) {
   if (type === 'circle') {
     if (round === 0) {
       const top = shuffle([2, 3, 4, 5, 6, 7, 8, 9], random).slice(0, 4),
-        factor = pick(2, 4),
-        add = pick(2, 7);
+        factor = pick(2, 3),
+        add = pick(1, 4);
       question = {
-        values: [...top, top[0] * factor + add, top[1] * factor + add, 'A', 'B'],
-        answers: top.slice(2).map((n) => n * factor + add),
-        note: 'Desde arriba, en sentido horario: las primeras cuatro fichas son entradas; sus opuestas, resultados. Misma multiplicación y misma suma.',
-        rule: `Al otro lado del centro: × ${factor}, después + ${add}.`,
+        values: [...top, ...top.slice(0, 3).map((n) => n * factor + add), 'A'],
+        answers: [top[3] * factor + add],
+        note: '¿Qué valor debe tener A para completar el círculo?',
+        rule: `Las cuatro primeras fichas se relacionan con sus opuestas: multiplica por ${factor} y después suma ${add}.`,
       };
     } else {
-      const a = pick(2, 6),
-        b = pick(9, 18),
-        step = pick(2, 5);
+      const a = pick(2, 9),
+        b = pick(25, 40),
+        step = pick(2, 4),
+        drop = pick(3, 5);
       question = {
-        values: [a, b, a * 2 + 1, b + step, (a * 2 + 1) * 2 + 1, b + step * 3, 'A', 'B'],
-        answers: [((a * 2 + 1) * 2 + 1) * 2 + 1, b + step * 6],
-        note: 'Desde arriba, en sentido horario. Dos caminos se alternan; ninguno salta al azar.',
-        rule: `Un camino duplica y suma 1. El otro avanza +${step}, +${step * 2}, +${step * 3}.`,
+        values: [a, b, a + step, b - drop, a + step * 2, b - drop * 2, 'A', 'B'],
+        answers: [a + step * 3, b - drop * 3],
+        note: 'Encuentra los valores de A y B. Lee una sola vuelta siguiendo la flecha.',
+        rule: `Leyendo desde arriba, se alternan dos series: una suma ${step} cada vez y la otra resta ${drop}.`,
       };
     }
   }
@@ -101,7 +232,7 @@ export function numberQuestion(type, seed, round, attempt = 0) {
         equations: [`3(x − ${a}) + ${b} = 2x ${signed(x - 3 * a + b)}`],
         answers: [x],
         labels: ['x'],
-        rule: `Al reunir las equis queda x = ${x}.`,
+        rule: `Al resolver la ecuación, x = ${x}.`,
       };
     if (round === 2) {
       const left = pick(4, 8),
@@ -128,27 +259,23 @@ export function numberQuestion(type, seed, round, attempt = 0) {
       );
       transform = (n) =>
         [...String(n)].reduce((sum, digit) => sum + SEGMENTS[Number(digit)].length, 0);
-      note =
-        'Una pantalla de siete segmentos. La máquina no está haciendo aritmética con el valor del número.';
+      note = 'Completa A y B a partir de los ejemplos de la pantalla.';
       rule = 'Cuenta los segmentos encendidos de cada pantalla, no el valor que escriben.';
     } else if (round === 1) {
-      inputs = shuffle([13, 24, 35, 46, 57, 68, 14, 25, 36, 47, 58, 69], random).slice(0, 6);
-      transform = (n) => (n % 10) ** 2 - Math.floor(n / 10) ** 2;
-      note =
-        'Aquí participan las dos cifras: potencias pequeñas y una resta. Siempre la misma regla.';
-      rule = 'Cuadrado de la segunda cifra menos cuadrado de la primera.';
+      inputs = shuffle([12, 23, 24, 35, 46, 52, 63, 74, 82, 93, 26, 47], random).slice(0, 6);
+      const extra = pick(1, 4);
+      transform = (n) => (n % 10) * Math.floor(n / 10) + extra;
+      note = 'Los ejemplos completos siguen una misma regla. ¿Qué valores faltan?';
+      rule = `Multiplica las dos cifras y suma ${extra}.`;
     } else {
-      inputs = shuffle([214, 623, 851, 732, 941, 506, 382, 164, 275, 490, 817, 359], random).slice(
-        0,
-        6,
-      );
-      transform = (n) => {
-        const digits = [...String(n)].sort();
-        return Number([...digits].reverse().join('')) - Number(digits.join(''));
-      };
-      note =
-        'Esta máquina reordena las mismas cifras antes de restar. Los ceros iniciales están permitidos.';
-      rule = 'Ordena las cifras de mayor a menor y de menor a mayor; resta ambos números.';
+      const differences = shuffle([1, 2, 3, 4, 5, 6], random);
+      inputs = differences.map((difference) => {
+        const last = pick(1, 9 - difference);
+        return (last + difference) * 10 + last;
+      });
+      transform = (n) => n - Number(String(n).split('').reverse().join(''));
+      note = 'Compara las entradas con sus resultados y completa las dos salidas.';
+      rule = 'Resta al número original el que se forma al invertir sus cifras.';
     }
     question = {
       pairs: inputs.map((n, i) => [n, i < 4 ? transform(n) : i === 4 ? 'A' : 'B']),
@@ -172,12 +299,13 @@ export function numberQuestion(type, seed, round, attempt = 0) {
         ],
         random,
       ).slice(0, 4);
+      const extra = pick(1, 5);
       question = {
-        values: pairs.flatMap(([a, b], i) => [a, i === 3 ? 'A' : b, a * b + a + b]),
+        values: pairs.flatMap(([a, b], i) => [a, i === 3 ? 'A' : b, a * b + extra]),
         answers: [pairs[3][1]],
         columns: 3,
-        note: 'Cuatro filas, una misma regla. La casilla derecha depende de las dos entradas.',
-        rule: 'La derecha vale izquierda × centro + izquierda + centro.',
+        note: 'Las tres filas completas sirven como ejemplo para resolver la última.',
+        rule: `La última casilla es el producto de las dos primeras más ${extra}.`,
       };
     } else if (round === 1) {
       const first = shuffle([2, 3, 4, 5, 6, 7, 8], random).slice(0, 4),
@@ -197,7 +325,7 @@ export function numberQuestion(type, seed, round, attempt = 0) {
         ],
         columns: 4,
         answers: first.slice(2).map((n, i) => n * factor + second[i + 2]),
-        note: 'Mismo cálculo vertical en las cuatro columnas: una multiplicación y una suma.',
+        note: 'Las columnas completas muestran la regla. Encuentra los dos números que faltan.',
         rule: `Abajo = arriba × ${factor} + centro.`,
       };
     } else {
@@ -216,6 +344,7 @@ export function numberQuestion(type, seed, round, attempt = 0) {
   }
   return {
     ...question,
+    guide: RULE_GUIDES[type][round],
     labels: question.labels || question.answers.map((_, i) => String.fromCharCode(65 + i)),
   };
 }
@@ -227,23 +356,56 @@ export function chemistryQuestion(variant, seed, round = 0, attempt = 0) {
     random,
   );
   if (variant === 0) {
-    const selected = indices.filter((i) => i > 1).slice(0, 5);
+    const selected = indices.filter((i) => i >= 3 && i <= 13).slice(0, 5);
+    const [a, b, c, d, e] = selected;
+    const add = 1 + Math.floor(random() * 3);
+    const split = 1 + Math.floor(random() * c);
+    const subtract = 1 + Math.floor(random() * (14 - d));
+    const lower = indices.find((i) => i < e);
     return {
       kind: 'files',
-      fields: selected.map((index, i) => ({
-        label:
-          i < 2
-            ? `Símbolo de ${ELEMENTS[index][1]}`
-            : i < 4
-              ? `Nombre de ${ELEMENTS[index][0]}`
-              : `Número atómico de ${ELEMENTS[index][0]}`,
-        answer: i < 2 ? ELEMENTS[index][0] : i < 4 ? ELEMENTS[index][1] : String(index + 1),
-      })),
+      fields: [
+        {
+          label: `Símbolo con Z = Z(${ELEMENTS[a - add][0]}) + ${add}`,
+          answer: ELEMENTS[a][0],
+          kind: 'symbol',
+        },
+        {
+          label: `Símbolo del elemento que va justo antes de ${ELEMENTS[b + 1][1]}`,
+          answer: ELEMENTS[b][0],
+          kind: 'symbol',
+        },
+        {
+          label: `Nombre con Z = Z(${ELEMENTS[split - 1][0]}) + Z(${ELEMENTS[c - split][0]})`,
+          answer: ELEMENTS[c][1],
+          kind: 'name',
+        },
+        {
+          label: `Nombre con Z = Z(${ELEMENTS[d + subtract][0]}) − ${subtract}`,
+          answer: ELEMENTS[d][1],
+          kind: 'name',
+        },
+        {
+          label: `¿Cuánto vale Z(${ELEMENTS[e][0]}) − Z(${ELEMENTS[lower][0]})?`,
+          answer: String(e - lower),
+          kind: 'integer',
+        },
+      ],
     };
   }
   if (variant === 1) {
-    const targets = indices.slice(0, 7);
-    return { kind: 'match', targets, names: shuffle(targets, random) };
+    const targets = indices.filter((i) => i > 1).slice(0, 7);
+    const cards = targets.map((index, i) => {
+      const split = 1 + Math.floor(random() * index);
+      return {
+        index,
+        text:
+          i % 2 === 0
+            ? `Z(${ELEMENTS[index - 2][0]}) + 2`
+            : `Z(${ELEMENTS[split - 1][0]}) + Z(${ELEMENTS[index - split][0]})`,
+      };
+    });
+    return { kind: 'match', targets, cards, names: shuffle(targets, random) };
   }
   if (variant === 2) {
     const selected = indices.slice(0, 4).sort((a, b) => a - b),
@@ -358,17 +520,17 @@ export function visualQuestion(seed, round, attempt = 0) {
       second = rotateMask(a),
       third = rotateMask(second),
       fourth = rotateMask(third);
-    tiles = [a, second ^ 15, third, fourth ^ 15, a, null];
-    answer = second ^ 15;
-    note = 'Hay dos cambios simultáneos en estas fichas. ¿Cuál sigue?';
-    rule = 'Giro de 90° horario y cambio de todos los cuadros: lleno ↔ vacío.';
+    tiles = [a, second, third, fourth, a, null];
+    answer = second;
+    note = '¿Qué ficha sigue en esta secuencia?';
+    rule = 'Cada ficha gira 90° hacia la derecha.';
     columns = 6;
   } else if (round === 1) {
     const [a, b, c, d, e, f] = masks;
     tiles = [a, b, a ^ b, c, d, c ^ d, e, f, null];
     answer = e ^ f;
     columns = 3;
-    note = 'En cada fila, la tercera ficha combina las otras dos de la misma manera.';
+    note = 'Las filas siguen una misma regla. Elige la ficha que falta.';
     rule = 'Un cuadro compartido se borra. Si está en una sola de las dos fichas, se queda.';
   } else {
     const mirror = (mask) => ((mask & 5) << 1) | ((mask & 10) >> 1);
@@ -386,7 +548,7 @@ export function visualQuestion(seed, round, attempt = 0) {
     ];
     answer = rotateMask(mirror(c));
     columns = 3;
-    note = 'Cada fila repite las mismas dos transformaciones. Encuentra la ficha que falta.';
+    note = 'Observa las filas completas y elige la ficha que falta.';
     rule = 'Reflejo izquierda-derecha, seguido de un cuarto de vuelta horario.';
   }
   const options = shuffle(
@@ -399,7 +561,7 @@ export function visualQuestion(seed, round, attempt = 0) {
     ],
     random,
   );
-  return { tiles, answer, options, note, rule, columns };
+  return { tiles, answer, options, note, rule, columns, guide: RULE_GUIDES.visual[round] };
 }
 
 export const MEMORY_SYMBOLS = ['★', '☂', '3', '◆', '7', '●', '☾', '✿'];
